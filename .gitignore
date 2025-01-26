@@ -1,2 +1,7 @@
+# .gitignore file
+__pycache__/
+data/
+notebooks/
 venv
-__pycache__
+Face_*
+.devcontainer
