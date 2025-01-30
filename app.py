@@ -113,7 +113,18 @@ def get_prediction_proba(docx):
     return results
 
 emotions_emoji_dict = {"anger": "😠", "disgust": "🤮", "fear": "😨😱", "happy": "🤗", "joy": "😂", "neutral": "😐", "sad": "😔", "sadness": "😔", "shame": "😳", "surprise": "😮", "no face": "😐"}
-
+convert_pred = {
+    "joy": "joyful",
+    "disgust": "disgusted",
+    "anger": "angry",
+    "fear": "afraid",
+    "happy": "happy",
+    "sad": "sad",
+    "sadness": "sad",
+    "shame": "ashamed",
+    "surprise": "surprised",
+    "neutral": "neutral"
+}
 # Main Application
 def main():
     st.title("Emotion Classifier App")
@@ -296,7 +307,7 @@ def main():
                     roi_combination = np.expand_dims(roi_combination, axis=0)
                     print(f"ROI shape: {roi_combination.shape}")    # 1,48,48,x
                     print(f"Expected input shape: {classifier.input_shape}") # None, 48,48,x
-                    img_prediction_combination = classifier.predict(roi)[0]
+                    img_prediction_combination = classifier.predict(roi_combination)[0]
                     print(img_prediction_combination, type(img_prediction_combination))
                     img_prediction_combination = np.where(img_prediction_combination == max(img_prediction_combination))
                     print(img_prediction_combination[0][0])
@@ -310,7 +321,7 @@ def main():
                 st.write("{}: {}".format(image_prediction_combination, emoji_icon_combination))
                 recommendation_combination = recommendation_text[image_prediction_combination]
                 if prediction_combination != image_prediction_combination and image_prediction_combination != "no face":
-                    st.write(f"You sound {prediction_combination} but you look {image_prediction_combination}")
+                    st.write(f"You sound {convert_pred[prediction_combination]} but you look {convert_pred[image_prediction_combination]}")
 
                 if image_prediction_combination == "no face":
                     recommendation_combination = recommendation_text[prediction_combination]
