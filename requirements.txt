@@ -1,5 +1,8 @@
-numpy
-pandas
+numpy==1.26.4
+pandas==2.2.3
+tensorflow==2.14.0
+streamlit
+opencv-python
 seaborn
 neattext
 plotly
