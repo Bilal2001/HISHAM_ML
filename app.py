@@ -24,18 +24,83 @@ image_class_labels={0: 'anger', 1: 'disgust', 2: 'fear', 3: 'happy', 4: 'neutral
 
 
 recommendation_text = {
-    "anger": ["Hey dont be angry"],
-    "joy": ["Hey keep being happy"],
-    "sadness": ["Hey dont be sad"],
-    "anger": ["Hey dont be angry"],
-    "disgust": ["Hey dont be disgust"],
-    "fear": ["Hey dont be fear"],
-    "happy": ["Hey dont be happy"],
-    "neutral": ["Hey dont be neutral", "fuck you"],
-    "sad": ["Hey dont be sad"],
-    "shame": ["Hey dont be shame"],
-    "surprise": ["Hey dont be surprise"],
-    "no face": ["Click an appropriate picture"]
+    "anger": [
+        "Hey, take a deep breath and relax.",
+        "It's okay to be upset, but don't let anger control you.",
+        "Try to channel your anger into something productive.",
+        "Let go of the frustration and focus on peace.",
+        "Take a step back and cool down, you've got this!"
+    ],
+    "joy": [
+        "Hey, keep spreading that happiness!",
+        "Your joy is contagious, keep it up!",
+        "Enjoy every moment and stay cheerful.",
+        "Stay positive and keep shining!",
+        "Happiness looks great on you!"
+    ],
+    "sadness": [
+        "Hey, it's okay to feel sad sometimes.",
+        "Remember, tough times don't last forever.",
+        "You're stronger than you think, keep pushing forward.",
+        "Surround yourself with things that make you happy.",
+        "If you need to talk, I'm here for you."
+    ],
+    "disgust": [
+        "Hey, try to focus on something positive.",
+        "Disgust is temporary, let it pass.",
+        "Clear your mind and think of something refreshing.",
+        "Don't let negative feelings ruin your day.",
+        "Find something that brings you joy instead!"
+    ],
+    "fear": [
+        "Hey, you're stronger than your fears.",
+        "Take deep breaths, you're safe.",
+        "Courage is not the absence of fear, but moving forward despite it.",
+        "You're not alone; you can overcome this.",
+        "Face your fears one step at a time."
+    ],
+    "happy": [
+        "Hey, keep enjoying the good moments!",
+        "Happiness suits you well!",
+        "Stay joyful and keep smiling!",
+        "You're radiating positive energy!",
+        "Keep spreading the happiness!"
+    ],
+    "neutral": [
+        "Hey, feeling neutral is okay too.",
+        "It's a calm moment, enjoy it.",
+        "Maybe try doing something exciting?",
+        "Find something that sparks your interest!",
+        "Being neutral is fine, but don't stay stuck!"
+    ],
+    "sad": [
+        "Hey, better days are coming.",
+        "You're not alone, reach out to someone.",
+        "Sadness is temporary, you will smile again.",
+        "Take it easy and be kind to yourself.",
+        "Remember, after every storm comes a rainbow."
+    ],
+    "shame": [
+        "Hey, don't be too hard on yourself.",
+        "We all make mistakes, it's okay.",
+        "Learn from it and move forward.",
+        "You're worthy and valuable, no matter what.",
+        "Self-forgiveness is the first step to healing."
+    ],
+    "surprise": [
+        "Hey, life is full of surprises!",
+        "Enjoy the unexpected moments!",
+        "Surprise keeps life interesting!",
+        "Take the moment in and embrace it.",
+        "Sometimes surprises lead to great things!"
+    ],
+    "no face": [
+        "Click an appropriate picture.",
+        "Make sure your face is visible.",
+        "Try again with better lighting.",
+        "Position your face properly for detection.",
+        "Make sure your camera is capturing your face."
+    ]
 }
 
 # Function
@@ -68,6 +133,7 @@ def main():
 
         if submit_text and len(raw_text):
             col1, col2 = st.columns(2)
+
 
             prediction = predict_emotions(raw_text)
             probability = get_prediction_proba(raw_text)
@@ -126,7 +192,7 @@ def main():
                 allfaces.append(roi_gray)
                 rects.append((x, w, y, h))
             
-            print(allfaces)
+            # print(allfaces)
             
             with col1:
                 st.success("Original Image")
@@ -156,6 +222,99 @@ def main():
                 st.write("{}: {}".format(image_prediction, emoji_icon))
                 recommendation = recommendation_text[image_prediction]
                 st.write("Suggestion: {}".format(recommendation[random.randint(0, len(recommendation)-1)]))
+
+        st.subheader("Emotion Detection in Text+Images")
+        
+        with st.form(key='emotion_clf_combination_image_form'):
+            name_combination = st.text_input("Enter your Name")
+            age_combination = st.text_input("Enter your Age")
+            primary_hobby_combination = st.text_input("Enter a Primary Hobby")
+            raw_text_combination = st.text_area("Type for combination emotion detection")
+            raw_image_combination = st.camera_input("Take a picture")
+            submit_form = st.form_submit_button(label='Submit')
+        
+        if submit_form and len(raw_text_combination):
+
+            col1, col2 = st.columns(2)
+
+            prediction_combination = predict_emotions(raw_text_combination)
+            probability_combination = get_prediction_proba(raw_text_combination)
+
+            add_prediction_details(age_combination, name_combination, primary_hobby_combination, raw_text_combination, prediction_combination, np.max(probability_combination), datetime.now(IST))
+
+            image_combination = Image.open(raw_image_combination)
+            img_combination = np.array(image_combination)
+
+            # Convert to BGR format (if needed, since OpenCV expects BGR, but PIL gives RGB)
+            img_combination = cv2.cvtColor(img_combination, cv2.COLOR_RGB2BGR)
+
+            # Convert to grayscale
+            gray_combination = cv2.cvtColor(img_combination, cv2.COLOR_BGR2GRAY)
+
+            # Detect faces
+            faces_combination = face_classifier.detectMultiScale(gray_combination, 1.3, 5)
+            allfaces_combination = []
+            rects_combination = []
+
+            # Process detected faces
+            for (x, y, w, h) in faces_combination:
+                cv2.rectangle(img_combination, (x, y), (x+w, y+h), (255, 0, 0), 2)
+                roi_gray_combination = gray_combination[y:y+h, x:x+w]
+                roi_gray_combination = cv2.resize(roi_gray_combination, (48, 48), interpolation=cv2.INTER_AREA)
+                allfaces_combination.append(roi_gray_combination)
+                rects_combination.append((x, w, y, h))
+
+            with col1:
+                st.success("Original Text")
+                st.write(raw_text_combination)
+
+                st.success("Prediction")
+                emoji_icon_combination = emotions_emoji_dict[prediction_combination]
+                recommendation_combination = recommendation_text[prediction_combination]
+                st.write("{}: {}".format(prediction_combination.capitalize(), emoji_icon_combination))
+                st.write("Confidence: {}".format(np.max(probability_combination)))
+                # st.write("Suggestion: {}".format(recommendation_combination[random.randint(0, len(recommendation_combination)-1)]))
+            
+                st.success("Original Image")
+                st.image(gray_combination, caption="Original Image")
+
+            with col2:
+                st.success("Prediction Probability")
+                proba_df_combination = pd.DataFrame(probability_combination, columns=pipe_lr.classes_)
+                proba_df_clean_combination = proba_df_combination.T.reset_index()
+                proba_df_clean_combination.columns = ["emotions", "probability"]
+
+                fig_combination = alt.Chart(proba_df_clean_combination).mark_bar().encode(x='emotions', y='probability', color='emotions')
+                st.altair_chart(fig_combination, use_container_width=True)
+
+                image_prediction_combination = "no face"
+                i = 0
+                for face in allfaces_combination:
+                    roi_combination = face.astype("float") / 255.0
+                    # roi = img_to_array(roi)
+                    roi_combination = np.expand_dims(roi_combination, axis=-1)
+                    roi_combination = np.expand_dims(roi_combination, axis=0)
+                    print(f"ROI shape: {roi_combination.shape}")    # 1,48,48,x
+                    print(f"Expected input shape: {classifier.input_shape}") # None, 48,48,x
+                    img_prediction_combination = classifier.predict(roi)[0]
+                    print(img_prediction_combination, type(img_prediction_combination))
+                    img_prediction_combination = np.where(img_prediction_combination == max(img_prediction_combination))
+                    print(img_prediction_combination[0][0])
+                    image_prediction_combination = image_class_labels[img_prediction_combination[0][0]]  # Replace 'classifier' with your loaded model
+                    st.write(f"Prediction for face {i+1}: {image_prediction_combination}")
+                    i += 1
+                    
+                st.success("Prediction")
+                st.image(cv2.cvtColor(img_combination, cv2.COLOR_BGR2RGB), caption="Processed Image")
+                emoji_icon_combination = emotions_emoji_dict[image_prediction_combination]
+                st.write("{}: {}".format(image_prediction_combination, emoji_icon_combination))
+                recommendation_combination = recommendation_text[image_prediction_combination]
+                if prediction_combination != image_prediction_combination and image_prediction_combination != "no face":
+                    st.write(f"You sound {prediction_combination} but you look {image_prediction_combination}")
+
+                if image_prediction_combination == "no face":
+                    recommendation_combination = recommendation_text[prediction_combination]
+                st.write("Suggestion: {}".format(recommendation_combination[random.randint(0, len(recommendation_combination)-1)]))
 
 
     elif choice == "Monitor":
