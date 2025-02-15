@@ -8,3 +8,4 @@ neattext
 plotly
 scikit-learn
 joblib
+streamlit-option-menu
