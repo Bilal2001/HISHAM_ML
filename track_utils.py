@@ -27,7 +27,7 @@ def add_image_prediction_details(name, prediction, timeOfvisit=None):
         timeOfvisit = datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
     else:
         timeOfvisit = timeOfvisit.astimezone(IST).strftime("%Y-%m-%d %H:%M:%S")
-    c.execute('INSERT INTO emotionclfImgTable(name, prediction, timeOfvisit) VALUES (?, ?, ?, ?)', (name, prediction, timeOfvisit))
+    c.execute('INSERT INTO emotionclfImgTable(name, prediction, timeOfvisit) VALUES (?, ?, ?)', (name, prediction, timeOfvisit))
     conn.commit()
 
 # Function to view prediction details
