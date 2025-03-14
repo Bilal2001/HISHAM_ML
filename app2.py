@@ -12,7 +12,7 @@ import tensorflow as tf
 import sqlite3
 import hashlib
 
-from track_utils import add_image_prediction_details, add_prediction_details, create_emotionclf_table, IST, get_names, view_prediction_details, view_prediction_details_images
+from track_utils import add_image_prediction_details, add_prediction_details, add_user, check_login, create_emotionclf_table, IST, get_ages, get_names, view_prediction_details, view_prediction_details_images
 
 ADMIN_NAME = "bilal"
 ADMIN_PASSWORD = "1234"
@@ -119,29 +119,9 @@ convert_pred = {
     "shame": "ashamed", "surprise": "surprised", "neutral": "neutral"
 }
 
-# ---------------- DATABASE FUNCTIONS ----------------
-conn = sqlite3.connect("./data/users.db", check_same_thread=False)
-c = conn.cursor()
-
-def create_users_table():
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, 
-                    username TEXT UNIQUE, 
-                    password TEXT)''')
-    conn.commit()
+# ---------------- DATABASE FUNCTIONS ------------------
 create_emotionclf_table()
-create_users_table()
 
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
-def check_login(username, password):
-    c.execute("SELECT * FROM users WHERE username=? AND password=?", (username, hash_password(password)))
-    return c.fetchone()
-
-def add_user(username, password):
-    c.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hash_password(password)))
-    conn.commit()
 
 def logout():
     st.session_state["logged_in"] = False
@@ -158,7 +138,7 @@ def get_prediction_proba(docx):
 
 # ---------------- STREAMLIT APP ----------------
 def main():
-    st.title("Emotion Classifier App")
+    st.title("EmotionSense")
     
     if "logged_in" not in st.session_state:
         st.session_state["logged_in"] = False
@@ -225,8 +205,8 @@ def main():
     
     # ABOUT PAGE
     elif choice == "About":
-        st.subheader("About the Emotion Classifier App")
-        st.write("Welcome to the Emotion Detection App! This tool uses NLP and machine learning to detect emotions in text.")
+        st.subheader("About EmotionSense")
+        st.write("Welcome to EmotionSense! This tool uses NLP and machine learning to detect emotions in text.")
         st.subheader("Our Mission")
         st.write("We aim to provide a real-time emotion detection tool that helps users understand emotional contexts in text.")
 
@@ -249,7 +229,6 @@ def main():
             with st.form(key='emotion_clf_form'):
                 name = st.text_input("Enter your Name")
                 age = st.text_input("Enter your Age")
-                primary_hobby = st.text_input("Enter a Primary Hobby")
                 raw_text = st.text_area("Type for emotion detection")
                 submit_text = st.form_submit_button(label='Submit')
 
@@ -259,9 +238,9 @@ def main():
 
                 prediction = predict_emotions(raw_text)
                 probability = get_prediction_proba(raw_text)
-                print(age, name, primary_hobby)
+                print(age, name)
 
-                add_prediction_details(age, st.session_state["username"], primary_hobby, raw_text, prediction, np.max(probability), datetime.now(IST))
+                add_prediction_details(age, st.session_state["username"], raw_text, prediction, np.max(probability), datetime.now(IST))
 
                 with col1:
                     st.success("Original Text")
@@ -287,9 +266,10 @@ def main():
 
             with st.form(key='emotion_clf_image_form'):
                 raw_image = st.camera_input("Take a picture")
+                age = st.text_input("Enter your Age")
                 submit_image = st.form_submit_button(label='Submit')
 
-            if submit_image and raw_image:     
+            if submit_image and raw_image and age:     
                 col1, col2 = st.columns(2)       
                 # Decode the BytesIO object to a NumPy array
                 image = Image.open(raw_image)
@@ -336,7 +316,7 @@ def main():
                         print(img_prediction[0][0])
                         image_prediction = image_class_labels[img_prediction[0][0]]  # Replace 'classifier' with your loaded model
                         st.write(f"Prediction for face {i+1}: {image_prediction}")
-                        add_image_prediction_details(st.session_state['username'], image_prediction)
+                        add_image_prediction_details(st.session_state['username'], age, image_prediction)
                         i += 1
                         
                     st.success("Prediction")
@@ -351,7 +331,6 @@ def main():
             with st.form(key='emotion_clf_combination_image_form'):
                 name_combination = st.text_input("Enter your Name")
                 age_combination = st.text_input("Enter your Age")
-                primary_hobby_combination = st.text_input("Enter a Primary Hobby")
                 raw_text_combination = st.text_area("Type for combination emotion detection")
                 raw_image_combination = st.camera_input("Take a picture")
                 submit_form = st.form_submit_button(label='Submit')
@@ -363,7 +342,7 @@ def main():
                 prediction_combination = predict_emotions(raw_text_combination)
                 probability_combination = get_prediction_proba(raw_text_combination)
 
-                add_prediction_details(age_combination, st.session_state["username"], primary_hobby_combination, raw_text_combination, prediction_combination, np.max(probability_combination), datetime.now(IST))
+                add_prediction_details(age_combination, st.session_state["username"], raw_text_combination, prediction_combination, np.max(probability_combination), datetime.now(IST))
 
                 image_combination = Image.open(raw_image_combination)
                 img_combination = np.array(image_combination)
@@ -425,7 +404,7 @@ def main():
                         print(img_prediction_combination[0][0])
                         image_prediction_combination = image_class_labels[img_prediction_combination[0][0]]  # Replace 'classifier' with your loaded model
                         st.write(f"Prediction for face {i+1}: {image_prediction_combination}")
-                        add_image_prediction_details(st.session_state['username'], image_prediction_combination)
+                        add_image_prediction_details(st.session_state['username'], age_combination, image_prediction_combination)
                         i += 1
                         
                     st.success("Prediction")
@@ -445,17 +424,22 @@ def main():
             st.subheader("Admin Utilities")
 
             names = ["all"] + get_names()
+            ages = ["all"] + get_ages()
             selected_name = "all"
+            selected_age = "all"
             
             with st.expander("Emotion Classifier Metrics"):
-                selected_name = st.selectbox(label="Names", options=names, placeholder="Select a name")
-                df_emotions = pd.DataFrame(view_prediction_details(selected_name), columns=["Age", "Name", "Primary Hobby", 'Rawtext', 'Prediction', 'Probability', 'Time_of_Visit'])
+                selected_name = st.selectbox(label="Names", options=names, placeholder="Select a Name")
+                selected_age = st.selectbox(label="Ages", options=ages, placeholder="Select an Age")
+
+                df_emotions = pd.DataFrame(view_prediction_details(selected_name, selected_age), columns=["Age", "Name", 'Rawtext', 'Prediction', 'Probability', 'Time_of_Visit'])
                 st.dataframe(df_emotions)
                 prediction_count = df_emotions['Prediction'].value_counts().rename_axis('Prediction').reset_index(name='Counts')
                 pc = alt.Chart(prediction_count).mark_bar().encode(x='Prediction', y='Counts', color='Prediction')
+                alt.Chart(prediction_count).mark_line()
                 st.altair_chart(pc, use_container_width=True)
 
-                df_emotions_img = pd.DataFrame(view_prediction_details_images(selected_name), columns=["Name", 'Prediction', 'Time_of_Visit'])
+                df_emotions_img = pd.DataFrame(view_prediction_details_images(selected_name, selected_age), columns=["Name", "Age", 'Prediction', 'Time_of_Visit'])
                 st.dataframe(df_emotions_img)
                 prediction_count_img = df_emotions_img['Prediction'].value_counts().rename_axis('Prediction').reset_index(name='Counts')
                 pc_img = alt.Chart(prediction_count_img).mark_bar().encode(x='Prediction', y='Counts', color='Prediction')
