@@ -25,81 +25,136 @@ face_classifier = cv2.CascadeClassifier('./Harcascade/haarcascade_frontalface_de
 classifier = tf.keras.models.load_model('./Models/model_v_47.hdf5')
 recommendation_text = {
     "anger": [
-        "Hey, take a deep breath and relax.",
-        "It's okay to be upset, but don't let anger control you.",
-        "Try to channel your anger into something productive.",
-        "Let go of the frustration and focus on peace.",
-        "Take a step back and cool down, you've got this!"
+        "Take a moment to pause and breathe deeply—allow the wave of anger to pass like a fleeting storm.",
+        "Channel your frustration into constructive actions that benefit you in the long run.",
+        "Remember, it's natural to feel anger, but mastering it gives you control over the situation.",
+        "Redirect your energy towards activities that calm your mind and restore balance.",
+        "Consider stepping back to gain perspective—clarity often dissolves irritation.",
+        "Acknowledge the emotion without letting it dictate your response; mindfulness tempers reaction.",
+        "Engage in physical activities like walking or stretching to release pent-up energy.",
+        "Anger often masks underlying feelings—reflect to uncover its true source.",
+        "Journaling your thoughts can help process emotions rationally and objectively.",
+        "Empathy towards others involved may soften intense reactions and encourage understanding."
     ],
     "joy": [
-        "Hey, keep spreading that happiness!",
-        "Your joy is contagious, keep it up!",
-        "Enjoy every moment and stay cheerful.",
-        "Stay positive and keep shining!",
-        "Happiness looks great on you!"
+        "Allow yourself to fully savor this joyful moment—bask in its light and let it uplift those around you.",
+        "Your happiness is contagious; share it freely, for smiles often ripple far beyond their origin.",
+        "Take time to appreciate the simple joys that contribute to this feeling of contentment.",
+        "Happiness flourishes when nurtured—continue investing in what sparks genuine delight within you.",
+        "Celebrate not just this moment but the journey that brought you here, filled with small victories.",
+        "Gratitude multiplies joy—pause and acknowledge the blessings you have.",
+        "Let this feeling anchor you, serving as a reminder during tougher times.",
+        "Reflect on how your positive energy impacts those around you positively.",
+        "Embrace spontaneity and let the lightness guide your actions today.",
+        "Happiness is a practice—cultivate it daily through intentional habits."
     ],
     "sadness": [
-        "Hey, it's okay to feel sad sometimes.",
-        "Remember, tough times don't last forever.",
-        "You're stronger than you think, keep pushing forward.",
-        "Surround yourself with things that make you happy.",
-        "If you need to talk, I'm here for you."
+        "It’s perfectly human to feel sad; acknowledge the emotion and grant yourself the grace to process it.",
+        "Lean on the people and passions that bring you comfort—connection often eases the burden.",
+        "Understand that emotions ebb and flow; brighter days await beyond this temporary cloud.",
+        "Treat yourself with compassion, allowing room for healing at your own pace.",
+        "Reflect on how far you've come—resilience is often forged in moments of struggle.",
+        "Seek solace in activities that soothe your soul, whether music, reading, or nature.",
+        "Allow yourself time; healing is non-linear and uniquely yours.",
+        "Consider writing down your feelings—it can bring surprising clarity.",
+        "Gentle self-care, like rest and nourishing food, makes a world of difference.",
+        "Reach out, even if briefly; human connection can lift heavy feelings."
     ],
     "disgust": [
-        "Hey, try to focus on something positive.",
-        "Disgust is temporary, let it pass.",
-        "Clear your mind and think of something refreshing.",
-        "Don't let negative feelings ruin your day.",
-        "Find something that brings you joy instead!"
+        "Shift your focus towards experiences and thoughts that nourish your sense of well-being.",
+        "Disgust, though intense, is transient—release it rather than allowing it to linger within.",
+        "Engage in positive distractions to cleanse your mind of the negativity you’re feeling.",
+        "Sometimes stepping away from the source of discomfort offers surprising clarity.",
+        "Transform the discomfort into motivation to seek or create something beautiful.",
+        "Ask yourself if the source of disgust aligns with your values—clarity may neutralize the feeling.",
+        "Engage in something refreshing like organizing your space or stepping outdoors.",
+        "Practice mindfulness, grounding yourself in the present instead of ruminating.",
+        "Redirect energy into creative outlets where emotions can be transformed into expression.",
+        "Remind yourself that emotions, including disgust, are information—not definitions of who you are."
     ],
     "fear": [
-        "Hey, you're stronger than your fears.",
-        "Take deep breaths, you're safe.",
-        "Courage is not the absence of fear, but moving forward despite it.",
-        "You're not alone; you can overcome this.",
-        "Face your fears one step at a time."
+        "Remember that fear, while powerful, often loses its grip when faced with steady resolve.",
+        "Ground yourself in the present moment—your breath is a constant reminder that you are safe.",
+        "Small, deliberate steps forward transform daunting fears into manageable challenges.",
+        "Recognize that courage is not the absence of fear, but the decision to persist despite it.",
+        "You possess the inner strength to confront uncertainty—believe in your resilience.",
+        "Visualize positive outcomes instead of catastrophizing worst-case scenarios.",
+        "Reframe fear as a signpost pointing towards growth and new opportunities.",
+        "Talk to someone you trust—vocalizing fears diminishes their intensity.",
+        "Focus on aspects within your control and release what you cannot change.",
+        "Self-compassion softens the edges of fear—treat yourself kindly in moments of uncertainty."
     ],
     "happy": [
-        "Hey, keep enjoying the good moments!",
-        "Happiness suits you well!",
-        "Stay joyful and keep smiling!",
-        "You're radiating positive energy!",
-        "Keep spreading the happiness!"
+        "Relish in the joy you're experiencing, and consciously store these moments as fuel for future challenges.",
+        "Happiness blossoms when shared—spread it freely and watch how it brightens your world.",
+        "Take a moment to reflect on the people, choices, and moments contributing to this happiness.",
+        "Let the glow of your positive energy radiate, inspiring others to seek their own joy.",
+        "Happiness, like a garden, thrives when regularly tended—keep nurturing what makes you smile.",
+        "Document these joyful moments—they become reminders during harder days.",
+        "Lean into this emotion fully, without rushing to the next task.",
+        "Consider engaging in acts of kindness, amplifying the joy you feel.",
+        "Recognize happiness as something built by intentional choices, not chance.",
+        "Celebrate even small joys; they compound over time, creating a foundation of positivity."
     ],
     "neutral": [
-        "Hey, feeling neutral is okay too.",
-        "It's a calm moment, enjoy it.",
-        "Maybe try doing something exciting?",
-        "Find something that sparks your interest!",
-        "Being neutral is fine, but don't stay stuck!"
+        "Neutrality offers a chance to pause—use this equilibrium to reset and reflect on your next steps.",
+        "This calm state is an opportunity to explore new activities or revisit old passions.",
+        "Sometimes neutrality is the space between inspiration—embrace it without judgment.",
+        "Consider engaging your curiosity; even small changes can ignite enthusiasm.",
+        "Use this moment of emotional steadiness to recalibrate and set new intentions.",
+        "Neutrality provides a chance to observe your thoughts without immediate reaction.",
+        "Engage in light, enjoyable tasks to gently transition into more energizing emotions.",
+        "Take stock of your emotional well-being—neutrality is a valuable checkpoint.",
+        "Recognize that contentment, even without highs and lows, holds its own quiet power.",
+        "View neutrality as a canvas, ready for new experiences to paint upon it."
     ],
     "sad": [
-        "Hey, better days are coming.",
-        "You're not alone, reach out to someone.",
-        "Sadness is temporary, you will smile again.",
-        "Take it easy and be kind to yourself.",
-        "Remember, after every storm comes a rainbow."
+        "Sadness may weigh heavy now, but remember, growth often follows these quieter, reflective times.",
+        "Reach out to those who care for you—connection can gently lift the heaviness.",
+        "Every emotion passes, and with patience, you'll find yourself on the other side stronger.",
+        "Permit yourself to feel fully, knowing that self-compassion is the pathway back to light.",
+        "Life's rhythm includes both sorrow and joy—your resilience will guide you back to brighter days.",
+        "Tears, like rain, nourish the ground—allow them space without shame.",
+        "Gentle movement or time outdoors may help release emotional weight.",
+        "Reflect on past moments of sadness overcome—you are more resilient than you realize.",
+        "Sadness often carries wisdom; listen for the insights hidden within.",
+        "Extend kindness to yourself as you would to a dear friend experiencing sadness."
     ],
     "shame": [
-        "Hey, don't be too hard on yourself.",
-        "We all make mistakes, it's okay.",
-        "Learn from it and move forward.",
-        "You're worthy and valuable, no matter what.",
-        "Self-forgiveness is the first step to healing."
+        "Release yourself from the harsh grip of self-judgment; mistakes are integral to growth.",
+        "Embrace vulnerability—it is the first courageous step towards self-forgiveness and healing.",
+        "Your worth remains constant, regardless of setbacks; treat yourself with the same kindness you’d offer others.",
+        "Reflect on the lessons hidden within the experience, and use them to propel yourself forward.",
+        "Remember, every individual stumbles—what matters most is the grace with which you rise.",
+        "Speak to yourself gently; your inner critic is not always an accurate narrator.",
+        "Shame thrives in secrecy—sharing your experience with a trusted person lightens its weight.",
+        "Acknowledge the humanity in imperfection; it's a universal trait, not a flaw.",
+        "Shift focus from past missteps to present actions that align with your values.",
+        "Forgiveness, especially of oneself, is a skill worth cultivating for lifelong peace."
     ],
     "surprise": [
-        "Hey, life is full of surprises!",
-        "Enjoy the unexpected moments!",
-        "Surprise keeps life interesting!",
-        "Take the moment in and embrace it.",
-        "Sometimes surprises lead to great things!"
+        "Unexpected moments add color to life—embrace this surprise and see where it leads you.",
+        "Sometimes surprises shift perspective in ways we couldn’t anticipate—be open to new possibilities.",
+        "Take time to process the unexpected, recognizing how change often brings hidden opportunities.",
+        "Life's unpredictability keeps things fresh—lean into curiosity rather than resistance.",
+        "Welcome the unexpected; often, it's life’s way of nudging you toward unexplored paths.",
+        "Surprises challenge us to remain flexible—adaptability fosters resilience.",
+        "Even surprises that disrupt plans can reveal unforeseen blessings in disguise.",
+        "Responding with openness transforms surprises into valuable experiences.",
+        "Reflect on past surprises that led to growth—you’ve navigated the unexpected before.",
+        "A little spontaneity can infuse life with renewed excitement and discovery."
     ],
     "no face": [
-        "Click an appropriate picture.",
-        "Make sure your face is visible.",
-        "Try again with better lighting.",
-        "Position your face properly for detection.",
-        "Make sure your camera is capturing your face."
+        "Ensure your face is well-lit and clearly visible—technology works best when given a fair chance.",
+        "Reposition yourself so your face is centered, making detection smooth and accurate.",
+        "Good lighting and framing make all the difference; try adjusting your environment slightly.",
+        "Take a moment to align yourself properly—clear visuals yield better analysis.",
+        "Please retake the image ensuring your face is unobstructed and clearly captured.",
+        "Consider cleaning your camera lens for optimal clarity before retaking.",
+        "Avoid backlighting, as it can shadow facial features and hinder detection.",
+        "Smile naturally—relaxed expressions lead to better recognition results.",
+        "Ensure the camera is stable; shaky images may affect emotion classification.",
+        "Try adjusting your distance to the camera for clearer framing and focus."
     ]
 }
 
