@@ -12,7 +12,7 @@ import tensorflow as tf
 import sqlite3
 import hashlib
 
-from track_utils import add_image_prediction_details, add_prediction_details, add_user, check_login, create_emotionclf_table, IST, get_ages, get_names, view_prediction_details, view_prediction_details_images
+from track_utils import add_image_prediction_details, add_prediction_details, add_user, check_login, create_emotionclf_table, IST, get_ages, get_names, get_user_emotions_over_time, get_user_image_emotions_over_time, view_prediction_details, view_prediction_details_images
 
 ADMIN_NAME = "bilal"
 ADMIN_PASSWORD = "1234"
@@ -151,6 +151,8 @@ def main():
         if "Register" in menu: menu.remove("Register")
         if "Home" not in menu:
             menu.append("Home")
+        if "Review" not in menu:
+            menu.append("Review")
         if st.session_state["username"] == ADMIN_NAME and st.session_state["password"] == ADMIN_PASSWORD:
             if "Monitor" not in menu: menu.append("Monitor")
         else:
@@ -174,7 +176,7 @@ def main():
                 st.session_state["username"] = username
                 st.session_state["password"] = password
                 st.success(f"Welcome back, {username}!")
-                menu += ["Home"]
+                menu += ["Home", "Review"]
 
                 if username == ADMIN_NAME and password == ADMIN_PASSWORD:
                     menu += ["Monitor"]
@@ -419,6 +421,88 @@ def main():
                         recommendation_combination = recommendation_text[prediction_combination]
                     st.write("Suggestion: {}".format(recommendation_combination[random.randint(0, len(recommendation_combination)-1)]))
 
+
+        # REVIEW PAGE
+        elif choice == "Review":
+            st.subheader("Your Emotion Trends Over Time")
+    
+            # Fetch user's emotion history
+            user_emotions = get_user_emotions_over_time(st.session_state["username"])
+            user_image_emotions = get_user_image_emotions_over_time(st.session_state["username"])
+            
+            if user_emotions or user_image_emotions:
+                tab1, tab2 = st.tabs(["Text Emotions", "Image Emotions"])
+                
+                with tab1:
+                    if user_emotions:
+                        # Convert to DataFrame for easier manipulation
+                        df_time = pd.DataFrame(user_emotions, columns=["Username", "Emotion", "Timestamp"])
+                        df_time['Timestamp'] = pd.to_datetime(df_time['Timestamp'])
+                        
+                        # Group by day and emotion to count occurrences
+                        df_time['Date'] = df_time['Timestamp'].dt.date
+                        emotion_counts = df_time.groupby(['Date', 'Emotion']).size().reset_index(name='Count')
+                        
+                        # Create time-series chart
+                        time_chart = alt.Chart(emotion_counts).mark_line(point=True).encode(
+                            x='Date:T',
+                            y='Count:Q',
+                            color='Emotion:N',
+                            tooltip=['Date', 'Emotion', 'Count']
+                        ).properties(
+                            title='Your Emotion Trends Over Time (Text)',
+                            width=600,
+                            height=400
+                        ).interactive()
+                        
+                        st.altair_chart(time_chart, use_container_width=True)
+                        
+                        # Add a summary section
+                        st.subheader("Emotion Summary")
+                        most_common = df_time['Emotion'].value_counts().idxmax()
+                        recent_trend = df_time.sort_values('Timestamp').tail(5)['Emotion'].value_counts().idxmax()
+                        
+                        st.write(f"Your most common emotion: **{most_common}**")
+                        st.write(f"Your recent trend: **{recent_trend}**")
+                    else:
+                        st.write("No text emotion data available yet. Start using the text emotion detection to see your trends!")
+                
+                with tab2:
+                    if user_image_emotions:
+                        # Convert to DataFrame for easier manipulation
+                        df_img_time = pd.DataFrame(user_image_emotions, columns=["Username", "Emotion", "Timestamp"])
+                        df_img_time['Timestamp'] = pd.to_datetime(df_img_time['Timestamp'])
+                        
+                        # Group by day and emotion to count occurrences
+                        df_img_time['Date'] = df_img_time['Timestamp'].dt.date
+                        img_emotion_counts = df_img_time.groupby(['Date', 'Emotion']).size().reset_index(name='Count')
+                        
+                        # Create time-series chart
+                        img_time_chart = alt.Chart(img_emotion_counts).mark_line(point=True).encode(
+                            x='Date:T',
+                            y='Count:Q',
+                            color='Emotion:N',
+                            tooltip=['Date', 'Emotion', 'Count']
+                        ).properties(
+                            title='Your Emotion Trends Over Time (Images)',
+                            width=600,
+                            height=400
+                        ).interactive()
+                        
+                        st.altair_chart(img_time_chart, use_container_width=True)
+                        
+                        # Add a summary section
+                        st.subheader("Image Emotion Summary")
+                        img_most_common = df_img_time['Emotion'].value_counts().idxmax()
+                        img_recent_trend = df_img_time.sort_values('Timestamp').tail(5)['Emotion'].value_counts().idxmax()
+                        
+                        st.write(f"Your most common facial emotion: **{img_most_common}**")
+                        st.write(f"Your recent facial emotion trend: **{img_recent_trend}**")
+                    else:
+                        st.write("No image emotion data available yet. Start using the image emotion detection to see your trends!")
+            else:
+                st.info("Start using the emotion detection features to see your trends over time!")
+                
         # MONITOR PAGE
         elif choice == "Monitor" and st.session_state["username"] == ADMIN_NAME and st.session_state["password"] == ADMIN_PASSWORD:
             st.subheader("Admin Utilities")
@@ -444,6 +528,65 @@ def main():
                 prediction_count_img = df_emotions_img['Prediction'].value_counts().rename_axis('Prediction').reset_index(name='Counts')
                 pc_img = alt.Chart(prediction_count_img).mark_bar().encode(x='Prediction', y='Counts', color='Prediction')
                 st.altair_chart(pc_img, use_container_width=True)
+
+                if selected_name != "all":
+                    all_emotion_data = get_user_emotions_over_time(selected_name)
+                    all_image_emotion_data = get_user_image_emotions_over_time(selected_name)
+                    
+                    if all_emotion_data or all_image_emotion_data:
+                        admin_tab1, admin_tab2 = st.tabs(["Text Emotions Trends", "Image Emotions Trends"])
+                        
+                        with admin_tab1:
+                            if all_emotion_data:
+                                df_admin_time = pd.DataFrame(all_emotion_data, columns=["Username", "Emotion", "Timestamp"])
+                                df_admin_time['Timestamp'] = pd.to_datetime(df_admin_time['Timestamp'])
+                                df_admin_time['Date'] = df_admin_time['Timestamp'].dt.date
+                                
+                                # Group by day and emotion to count occurrences
+                                admin_emotion_counts = df_admin_time.groupby(['Date', 'Emotion']).size().reset_index(name='Count')
+                                
+                                # Create time-series chart
+                                admin_time_chart = alt.Chart(admin_emotion_counts).mark_line(point=True).encode(
+                                    x='Date:T',
+                                    y='Count:Q',
+                                    color='Emotion:N',
+                                    tooltip=['Date', 'Emotion', 'Count']
+                                ).properties(
+                                    title=f'Emotion Trends Over Time for {selected_name}',
+                                    width=600,
+                                    height=400
+                                ).interactive()
+                                
+                                st.altair_chart(admin_time_chart, use_container_width=True)
+                            else:
+                                st.write("No text emotion data available for selected user.")
+                        
+                        with admin_tab2:
+                            if all_image_emotion_data:
+                                df_admin_img_time = pd.DataFrame(all_image_emotion_data, columns=["Username", "Emotion", "Timestamp"])
+                                df_admin_img_time['Timestamp'] = pd.to_datetime(df_admin_img_time['Timestamp'])
+                                df_admin_img_time['Date'] = df_admin_img_time['Timestamp'].dt.date
+                                
+                                # Group by day and emotion to count occurrences
+                                admin_img_emotion_counts = df_admin_img_time.groupby(['Date', 'Emotion']).size().reset_index(name='Count')
+                                
+                                # Create time-series chart
+                                admin_img_time_chart = alt.Chart(admin_img_emotion_counts).mark_line(point=True).encode(
+                                    x='Date:T',
+                                    y='Count:Q',
+                                    color='Emotion:N',
+                                    tooltip=['Date', 'Emotion', 'Count']
+                                ).properties(
+                                    title=f'Image Emotion Trends Over Time for {selected_name}',
+                                    width=600,
+                                    height=400
+                                ).interactive()
+                                
+                                st.altair_chart(admin_img_time_chart, use_container_width=True)
+                            else:
+                                st.write("No image emotion data available for selected user.")
+                    else:
+                        st.write("No emotion trend data available for the selected user.")
 
     # else:
     #     st.warning("Please login or register to access the app.")

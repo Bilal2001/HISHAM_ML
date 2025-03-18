@@ -93,3 +93,37 @@ def view_prediction_details_images(given_name, age):
     c.execute(query)
     data = c.fetchall()
     return data
+
+def get_user_emotions_over_time(username):
+    """
+    Retrieves emotion data for a specific user with timestamps
+    for time-series visualization.
+    """
+    
+    c.execute("""
+        SELECT name, prediction, timeOfvisit 
+        FROM emotionclfTable 
+        WHERE name = ? 
+        ORDER BY timeOfvisit
+    """, (username,))
+    
+    data = c.fetchall()
+    
+    return data
+
+def get_user_image_emotions_over_time(username):
+    """
+    Retrieves image emotion data for a specific user with timestamps
+    for time-series visualization.
+    """
+    
+    c.execute("""
+        SELECT name, prediction, timeOfvisit 
+        FROM emotionclfImgTable 
+        WHERE name = ? 
+        ORDER BY timeOfvisit
+    """, (username,))
+    
+    data = c.fetchall()
+    
+    return data
