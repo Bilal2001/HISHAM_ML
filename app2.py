@@ -14,8 +14,8 @@ import hashlib
 
 from track_utils import add_image_prediction_details, add_prediction_details, add_user, check_login, create_emotionclf_table, IST, get_ages, get_names, get_user_emotions_over_time, get_user_image_emotions_over_time, view_prediction_details, view_prediction_details_images
 
-ADMIN_NAME = "bilal"
-ADMIN_PASSWORD = "1234"
+ADMIN_NAME = "hisham"
+ADMIN_PASSWORD = "2468"
 
 # Load Models
 pipe_lr = joblib.load(open("./models/emotion_classifier_pipe_lr.pkl", "rb"))
